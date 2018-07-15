@@ -1,0 +1,5 @@
+create table IF NOT EXISTS "APK_Provenance" (
+  "ID" VARCHAR NOT NULL,
+  "NAME" VARCHAR NOT NULL,
+  "VERSION" INTEGER NOT NULL
+);
