@@ -1,6 +1,3 @@
-/**
-  * Created by s on 6/2/17.
-  */
 import java.io.{File, PrintWriter}
 
 import scala.collection.immutable.StringOps
@@ -8,9 +5,6 @@ import scala.io.Source
 import scala.xml.{MetaData, Node, NodeSeq, XML}
 object Downloader {
   def main(args: Array[String]): Unit = {
-    //reading, science and education, games downloaded
-//    downloadCategory("Reading")
-//    getCategories().map(println
     downloadList("/Users/s/Documents/data/fdroid_manually_curated/fdroid_list.txt")
 //    allAppNames()
   }
