@@ -3,7 +3,7 @@ import arrow, boto3, hashlib, json, os, shutil, urllib
 # start an amazon s3 session
 session     = boto3.Session(profile_name="default")
 s3          = session.client("s3")
-BUCKET_NAME = "phillip-test"
+BUCKET_NAME = "mcgroum-corpus"
     
 BUF_SIZE = 65536        # buffer for computing hash
 baseDir  = "data/apps/" # path to retrieved data
@@ -52,7 +52,8 @@ def Download(packageName, download, upload, minVer, minYear):
                 os.makedirs(apkDir)
         if not os.path.exists(srcDir):
                     os.makedirs(srcDir)
-        with open(baseDir + packageName + "/meta.txt",
+        with open(baseDir + packageName + "/" +\
+                  targetSdkVersion + "/meta.txt",
                   "w") as f:
             json.dump(data, f, indent=2, sort_keys=True)
             f.close()
@@ -79,10 +80,10 @@ def Download(packageName, download, upload, minVer, minYear):
                                    + srcName, srcDir + srcName)
 
                 if upload:
-                    s3.upload_file(baseDir + packageName +
-                                   "/meta.txt", BUCKET_NAME,
-                                   baseDir + packageName +
-                                   "/meta.txt")
+                    s3.upload_file(baseDir + packageName +\
+                                   "/" + targetSdkVersion + "/meta.txt",
+                                   BUCKET_NAME, baseDir + packageName +\
+                                   "/" + targetSdkVersion + "/meta.txt")
                     s3.upload_file(apkDir + apkName,
                                    BUCKET_NAME,
                                    apkDir + apkName)
