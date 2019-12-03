@@ -4,8 +4,6 @@
 Python script for downloading and uploading Android application `apk`
 and `src` files.
 
-Install requirements with `pip install -r requirements.txt`.
-
 Usage guide:
 
 ```
