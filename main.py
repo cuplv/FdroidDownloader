@@ -23,9 +23,10 @@ def main(argv):
     count = 0
 
     # Shuffle downloads to get a random sampling of apps
-    random.shuffle(download.packages)
-    
-    for packageName in download.packages:
+    packages_to_download = list(download.packages)
+    random.shuffle(packages_to_download)
+
+    for packageName in packages_to_download:
         if count != 0:
             sleep(args.delay)
         if count >= args.n:
