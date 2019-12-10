@@ -9,6 +9,7 @@ def main(argv):
     v = 0
     y = "1990"
     delay = 0
+    out_dir = None
     try:
         opts, args = getopt.getopt(argv, "hdn:uv:y:")
     except getopt.GetoptError:
@@ -26,6 +27,7 @@ def main(argv):
                   " than #")
             print("-y <yyyy> ignore apps published before yyyy")
             print("--delay <#>   wait # seconds between downloads")
+            print("--out_dir [dirname] directory for downloads")
             sys.exit(0)
         if opt == "-d":
             d = True
@@ -39,6 +41,8 @@ def main(argv):
             y = arg
         if opt == "--delay":
             delay = float(arg)
+        if opt == "--out_dir":
+            out_dir = arg
 
     # download
     count = 0
@@ -49,7 +53,7 @@ def main(argv):
             return 0
         try:
             r = download.Download(packageName, download=d,
-                                  upload=u, minVer=v, minYear=y)
+                                  upload=u, minVer=v, minYear=y, baseDir=out_dir)
             if r > 0:
                 count += 1
         except Exception as e:

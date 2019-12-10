@@ -23,16 +23,18 @@ packages = j_data["packages"] # dict, contains app data
 
 
 
-def Download(packageName, download, upload, minVer, minYear, baseDir="data/apps/"):
+def Download(packageName, download, upload, minVer, minYear, baseDir=None):
     """
     :param packageName:
     :param download:
     :param upload:
     :param minVer:
     :param minYear:
-    :param baseDir:
+    :param baseDir: directory to download apps to
     :return: number of actual packages downloaded
     """
+    if baseDir is None:
+        baseDir = "data/apps/"
     if upload and not use_s3:
         raise Exception("S3 profile not found")
     downloaded = 0
