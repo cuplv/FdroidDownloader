@@ -1,59 +1,34 @@
 from time import sleep
 
-import download, getopt, sys
+import download, argparse, sys
 
 def main(argv):
-    d = False
-    u = False
-    n = 20
-    v = 0
-    y = "1990"
-    delay = 0
-    out_dir = None
-    try:
-        opts, args = getopt.getopt(argv, "hdn:uv:y:")
-    except getopt.GetoptError:
-        print("Bad usage. Try -h for more information.")
-        sys.exit(1)
 
-    for opt, arg in opts:
-        if opt == "-h":
-            print("Flags:")
-            print("-d        turn on downloads")
-            print("-h        help")
-            print("-n <#>    search for up to # apps")
-            print("-u        upload to amazon s3 bucket")
-            print("-v <#>    ignore targetSdk versions less"
-                  " than #")
-            print("-y <yyyy> ignore apps published before yyyy")
-            print("--delay <#>   wait # seconds between downloads")
-            print("--out_dir [dirname] directory for downloads")
-            sys.exit(0)
-        if opt == "-d":
-            d = True
-        if opt == "-n":
-            n = int(arg)
-        if opt == "-u":
-            u = True
-        if opt == "-v":
-            v = int(arg)
-        if opt == "-y":
-            y = arg
-        if opt == "--delay":
-            delay = float(arg)
-        if opt == "--out_dir":
-            out_dir = arg
+    parser = argparse.ArgumentParser(description="Download Fdroid Applications.")
+    parser.add_argument('-d', help="turn on downloads", default=False, action='store_true')
+    parser.add_argument('-n', help="number of apps to download", default=20, type=int)
+    parser.add_argument("--out_dir", help="directory to store apps", default=None)
+    parser.add_argument("--delay", help="delay between downloads", default=0, type=int)
+    parser.add_argument("-y", help="ignore apps published before yyyy", default="1990")
+    parser.add_argument("-v", help="ignore targetSdk versions less", default=0, type=int)
+    parser.add_argument("-u", help="upload to amazon s3 bucket", default=False, type=bool)
+    parser.add_argument("--all_versions",
+                        help="download all versions of each app instead of only the latest",
+                        default=False, action='store_true')
+
+    args = parser.parse_args(argv)
 
     # download
     count = 0
     for packageName in download.packages:
         if count != 0:
-            sleep(delay)
-        if count >= n:
+            sleep(args.delay)
+        if count >= args.n:
             return 0
         try:
-            r = download.Download(packageName, download=d,
-                                  upload=u, minVer=v, minYear=y, baseDir=out_dir)
+            r = download.Download(packageName, download=args.d,
+                                  upload=args.u, minVer=args.v,
+                                  minYear=args.y, baseDir=args.out_dir,allVersions=args.all_versions)
             if r > 0:
                 count += 1
         except Exception as e:

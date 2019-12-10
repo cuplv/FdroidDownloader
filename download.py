@@ -22,8 +22,13 @@ with open("data/index/index.json", "r") as f:
 packages = j_data["packages"] # dict, contains app data
 
 
-
-def Download(packageName, download, upload, minVer, minYear, baseDir=None):
+def sortBy(x):
+    if "versionCode" in x:
+        return x["versionCode"]
+    else:
+        print("Version code not found in: %s" % str(x))
+        return 99999
+def Download(packageName, download, upload, minVer, minYear, baseDir=None, allVersions=False):
     """
     :param packageName:
     :param download:
@@ -38,7 +43,14 @@ def Download(packageName, download, upload, minVer, minYear, baseDir=None):
     if upload and not use_s3:
         raise Exception("S3 profile not found")
     downloaded = 0
-    for data in packages[packageName]:
+    all_packages = packages[packageName]
+    if allVersions:
+        download_packages = all_packages
+    else:
+        all_packages.sort(key=sortBy)
+        all_packages.reverse()
+        download_packages = all_packages[:1]
+    for data in download_packages:
         apkName          = str(data["apkName"])
         srcName          = str(data["srcname"])
         theHash          = str(data["hash"])
