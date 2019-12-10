@@ -1,3 +1,5 @@
+from time import sleep
+
 import download, getopt, sys
 
 def main(argv):
@@ -6,6 +8,7 @@ def main(argv):
     n = 20
     v = 0
     y = "1990"
+    delay = 0
     try:
         opts, args = getopt.getopt(argv, "hdn:uv:y:")
     except getopt.GetoptError:
@@ -22,6 +25,7 @@ def main(argv):
             print("-v <#>    ignore targetSdk versions less"
                   " than #")
             print("-y <yyyy> ignore apps published before yyyy")
+            print("--delay <#>   wait # seconds between downloads")
             sys.exit(0)
         if opt == "-d":
             d = True
@@ -33,16 +37,20 @@ def main(argv):
             v = int(arg)
         if opt == "-y":
             y = arg
+        if opt == "--delay":
+            delay = float(arg)
 
     # download
     count = 0
     for packageName in download.packages:
+        if count != 0:
+            sleep(delay)
         if count >= n:
             return 0
         try:
             r = download.Download(packageName, download=d,
                                   upload=u, minVer=v, minYear=y)
-            if r == 0:
+            if r > 0:
                 count += 1
         except Exception as e:
             print("There was an issue with package %s."
