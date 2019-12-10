@@ -1,3 +1,4 @@
+import random
 from time import sleep
 
 import download, argparse, sys
@@ -20,6 +21,10 @@ def main(argv):
 
     # download
     count = 0
+
+    # Shuffle downloads to get a random sampling of apps
+    random.shuffle(download.packages)
+    
     for packageName in download.packages:
         if count != 0:
             sleep(args.delay)
