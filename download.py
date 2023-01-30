@@ -1,6 +1,7 @@
 from os.path import exists
 
 import arrow, boto3, hashlib, json, os, shutil, urllib
+from requests.exceptions import MissingSchema
 
 # start an amazon s3 session
 try:
@@ -28,6 +29,47 @@ def sortBy(x):
     else:
         print("Version code not found in: %s" % str(x))
         return 99999
+def latestVersion(all_packages):
+    packageValues = all_packages['versions']
+    mostRecentDate = 0
+    mostRecent = None
+
+    for hash in packageValues:
+        curr = packageValues[hash]
+        added = curr['added']
+        if mostRecentDate < added:
+            mostRecentDate = added
+            mostRecent = curr
+    return mostRecent
+
+# import module
+import requests
+
+# create a function
+# pass the url
+def url_ok(url):
+
+    # exception block
+    try:
+
+        # pass the url into
+        # request.hear
+        response = requests.head(url)
+
+        # check the status code
+        if response.status_code == 200:
+            return True
+        elif response.status_code == 301:
+            newUrl = response.headers['Location']
+            return url_ok(newUrl)
+        else:
+            return False
+    except requests.ConnectionError as e:
+        return False
+    except MissingSchema as e:
+        return False
+
+
 def Download(packageName, download, upload, minVer, baseDir=None, allVersions=False):
     """
     :param packageName:
@@ -47,23 +89,16 @@ def Download(packageName, download, upload, minVer, baseDir=None, allVersions=Fa
     if allVersions:
         raise Exception("TODO:implement me if needed")
     else:
-        packageValues = all_packages['versions']
-        mostRecentDate = 0
-        mostRecent = None
-
-        for hash in packageValues:
-            curr = packageValues[hash]
-            added = curr['added']
-            if mostRecentDate < added:
-                mostRecentDate = added
-                mostRecent = curr
-        packages_to_download= [mostRecent]
+        packages_to_download = [latestVersion(all_packages)]
         # packageValues.sort(key=sortBy)
         # all_packages.reverse()
         # download_packages = all_packages[:1]
     for data in packages_to_download:
         apkName          = str(data['file']["name"])
-        srcName          = str(data["src"]['name'])
+        if 'src' not in data:
+            print("skipping malformed %s " % packageName)
+            continue
+        srcName          = str(data['src']['name'])
         theHash          = str(data['file']["sha256"])
         versionName      = str(data['manifest']["versionName"])
         targetSdkVersion = str(data['manifest']['usesSdk']["targetSdkVersion"])
