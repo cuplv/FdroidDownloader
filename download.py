@@ -28,13 +28,12 @@ def sortBy(x):
     else:
         print("Version code not found in: %s" % str(x))
         return 99999
-def Download(packageName, download, upload, minVer, minYear, baseDir=None, allVersions=False):
+def Download(packageName, download, upload, minVer, baseDir=None, allVersions=False):
     """
     :param packageName:
-    :param download:
-    :param upload:
-    :param minVer:
-    :param minYear:
+    :param download: boolean, download to directory
+    :param upload: boolean, upload to amazon s3 bucket
+    :param minVer: ignore min versions less than this
     :param baseDir: directory to download apps to
     :return: number of actual packages downloaded
     """
@@ -44,36 +43,42 @@ def Download(packageName, download, upload, minVer, minYear, baseDir=None, allVe
         raise Exception("S3 profile not found")
     downloaded = 0
     all_packages = packages[packageName]
+    packages_to_download = []
     if allVersions:
-        download_packages = all_packages
+        raise Exception("TODO:implement me if needed")
     else:
-        all_packages.sort(key=sortBy)
-        all_packages.reverse()
-        download_packages = all_packages[:1]
-    for data in download_packages:
-        apkName          = str(data["apkName"])
-        srcName          = str(data["srcname"])
-        theHash          = str(data["hash"])
-        packageName      = str(data["packageName"])
-        hashType         = str(data["hashType"])
-        versionCode      = str(data["versionCode"])
-        versionName      = str(data["versionName"])
-        minSdkVersion    = str(data["minSdkVersion"])
-        targetSdkVersion = str(data["targetSdkVersion"])
-        size             = str(data["size"])
-        
+        packageValues = all_packages['versions']
+        mostRecentDate = 0
+        mostRecent = None
+
+        for hash in packageValues:
+            curr = packageValues[hash]
+            added = curr['added']
+            if mostRecentDate < added:
+                mostRecentDate = added
+                mostRecent = curr
+        packages_to_download= [mostRecent]
+        # packageValues.sort(key=sortBy)
+        # all_packages.reverse()
+        # download_packages = all_packages[:1]
+    for data in packages_to_download:
+        apkName          = str(data['file']["name"])
+        srcName          = str(data["src"]['name'])
+        theHash          = str(data['file']["sha256"])
+        versionName      = str(data['manifest']["versionName"])
+        targetSdkVersion = str(data['manifest']['usesSdk']["targetSdkVersion"])
+
         # dividing to eliminate the zeroes tacked on at the end
-        timeStamp        = int(data["added"]) / 1000
 
         # skips packages older than the minimum SDK version
         if int(targetSdkVersion) < minVer:
             continue
 
         # skips packages older than the minimum year
-        minimum = arrow.get(minYear, "YYYY")
-        current = arrow.get(timeStamp)
-        if current.year < minimum.year:
-            continue
+        # minimum = arrow.get(minYear, "YYYY")
+        # current = arrow.get(timeStamp)
+        # if current.year < minimum.year:
+        #     continue
         downloadBase = os.path.join(baseDir, packageName, versionName)
 
         apkDir = os.path.join(downloadBase, "apk/")
@@ -102,7 +107,7 @@ def Download(packageName, download, upload, minVer, minYear, baseDir=None, allVe
         if download or upload:
         # download apk
             print("Retrieving %s" % packageName)
-            urllib.urlretrieve("https://f-droid.org/repo/"\
+            urllib.request.urlretrieve("https://f-droid.org/repo/"\
                                + apkName, apkDir + apkName)
 
             # compute hash
@@ -117,9 +122,9 @@ def Download(packageName, download, upload, minVer, minYear, baseDir=None, allVe
 
             if(sha256.hexdigest() == theHash):
                 # download src
-                res = urllib.urlretrieve("https://f-droid.org/repo/"\
+                res = urllib.request.urlretrieve("https://f-droid.org/repo/"\
                                    + srcName, srcDir + srcName)
-                if 'content-length' in res[1].dict and int(res[1].dict['content-length'] > 0):
+                if int(res[1].get('content-length')) > 0:
                     # Download succeeded
                     with open(completedFileName,'w') as completedFile:
                         completedFile.write(theHash)
